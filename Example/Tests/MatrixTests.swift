@@ -655,6 +655,19 @@ class MatrixSpec: QuickSpec {
                 let l = chol(m1, .Lower)
                 expect(l * l′) == m1
             }
+            it("linsolve") {
+                // Exact
+                let A = Matrix([[1.0, 1.0, 1.0],
+                                 [0.0, 2.0, 5.0],
+                                 [2.0, 5.0, -1.0]])
+                let B = Matrix([[6],
+                                [-4],
+                                [27]])
+                let x = Matrix([[5],
+                                [3],
+                                [-2]])
+                expect(linsolve(A, B)) == x
+            }
         }
         
         describe("Matrix concatenation") {

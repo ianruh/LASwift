@@ -384,3 +384,48 @@ public func tri(_ A: Matrix, _ t: Triangle) -> Matrix {
     }
     return _A
 }
+
+//public func dgels_(_ __trans: UnsafeMutablePointer<Int8>!, _ __m: UnsafeMutablePointer<__CLPK_integer>!, _ __n: UnsafeMutablePointer<__CLPK_integer>!, _ __nrhs: UnsafeMutablePointer<__CLPK_integer>!, _ __a: UnsafeMutablePointer<__CLPK_doublereal>!, _ __lda: UnsafeMutablePointer<__CLPK_integer>!, _ __b: UnsafeMutablePointer<__CLPK_doublereal>!, _ __ldb: UnsafeMutablePointer<__CLPK_integer>!, _ __work: UnsafeMutablePointer<__CLPK_doublereal>!, _ __lwork: UnsafeMutablePointer<__CLPK_integer>!, _ __info: UnsafeMutablePointer<__CLPK_integer>!) -> Int32
+
+/// Compute the solution to the system Ax = b for each column in B. With A(m x n): if m>=n, then it finds the least squares solution
+/// to the overdetermined probelm by minimizing ||B - A*x||; if n>m, then it finds the minimum norm solution to the underdetermined system Ax = B.
+///
+///    A precondition error is thrown if the given matrix is singular, algorithm fails to converge or .
+///
+/// - Parameters:
+///     - A: the A matrix in Ax = B
+///     - B: the B matrix in Ax = B
+/// - Returns: the solution(s) to the system Ax = B
+public func linsolve(_ A: Matrix, _ B: Matrix) -> Matrix {
+    precondition(A.rows == B.rows, "Matrix dimensions must agree")
+    let A_copy = Matrix(A)
+    let B_copy = Matrix(B)
+    
+    var TRANS = "T".utf8CString[0]
+    var M = __CLPK_integer(A_copy.rows)
+    var N = __CLPK_integer(A_copy.cols)
+    var NRHS = __CLPK_integer(B_copy.cols)
+    
+    var LDA = M
+    var LDB = M
+    
+    var wkOpt = __CLPK_doublereal(0.0)
+    var lWork = __CLPK_integer(-1)
+    
+    var error: __CLPK_integer = 0
+    
+    /* Query and allocate the optimal workspace */
+    
+    dgels_(&TRANS, &M, &N, &NRHS, &(A_copy.flat), &LDA, &(B_copy.flat), &LDB, &wkOpt, &lWork, &error)
+    
+    lWork = __CLPK_integer(wkOpt)
+    var work = Vector(repeating: 0.0, count: Int(lWork))
+    
+    /* Compute inversed matrix */
+    
+    dgels_(&TRANS, &M, &N, &NRHS, &(A_copy.flat), &LDA, &(B_copy.flat), &LDB, &work, &lWork, &error)
+    
+    precondition(error == 0, "Matrix A is non invertible")
+    
+    return B_copy[0..<A.cols, 0..<B.cols]
+}

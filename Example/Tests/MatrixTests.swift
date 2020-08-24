@@ -666,7 +666,11 @@ class MatrixSpec: QuickSpec {
                 let x = Matrix([[5],
                                 [3],
                                 [-2]])
-                expect(linsolve(A, B)) == x
+                do {
+                    try expect(linsolve(A, B)) == x
+                } catch {
+                    expect(false)
+                }
             }
         }
         

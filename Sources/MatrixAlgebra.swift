@@ -396,8 +396,11 @@ public func tri(_ A: Matrix, _ t: Triangle) -> Matrix {
 ///     - A: the A matrix in Ax = B
 ///     - B: the B matrix in Ax = B
 /// - Returns: the solution(s) to the system Ax = B
-public func linsolve(_ A: Matrix, _ B: Matrix) -> Matrix {
-    precondition(A.rows == B.rows, "Matrix dimensions must agree")
+public func linsolve(_ A: Matrix, _ B: Matrix) throws -> Matrix {
+    guard A.rows == B.rows else {
+        throw LASwiftError.misc("Matrix dimensions must agree")
+    }
+
     let A_copy = Matrix(A)
     let B_copy = Matrix(B)
     
@@ -425,7 +428,9 @@ public func linsolve(_ A: Matrix, _ B: Matrix) -> Matrix {
     
     dgels_(&TRANS, &M, &N, &NRHS, &(A_copy.flat), &LDA, &(B_copy.flat), &LDB, &work, &lWork, &error)
     
-    precondition(error == 0, "Matrix A is non invertible")
+    guard error == 0 else {
+        throw LASwiftError.misc("Matrix A is non invertible")
+    }
     
     return B_copy[0..<A.cols, 0..<B.cols]
 }

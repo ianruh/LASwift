@@ -8,6 +8,10 @@
 
 import Accelerate
 
+public enum LASwiftError: Error {
+    case misc(_ message: String)
+}
+
 // MARK: - Vector operations
 
 typealias Scalar = Double

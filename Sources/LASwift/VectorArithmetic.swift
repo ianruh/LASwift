@@ -6,8 +6,7 @@
 // This software may be modified and distributed under the terms
 // of the BSD license. See the LICENSE file for details.
 
-import Darwin
-import Accelerate
+import CLAPACK
 
 // MARK: - Arithmetic operations on two vectors
 
@@ -20,7 +19,9 @@ import Accelerate
 ///     - b: right vector
 /// - Returns: elementwise vector sum of a and b
 public func plus(_ a: Vector, _ b: Vector) -> Vector {
-    return vectorVectorOperation(vDSP_vaddD, a, b)
+    precondition(a.count == b.count, "Vectors must have equal lenghts")
+    return zip(a, b).map({$0 + $1})
+
 }
 
 /// Perform vector addition.
@@ -44,7 +45,8 @@ public func + (_ a: Vector, _ b: Vector) -> Vector {
 ///     - b: right vector
 /// - Returns: elementwise vector difference of a and b
 public func minus(_ a: Vector, _ b: Vector) -> Vector {
-    return vectorVectorOperation(vDSP_vsubD, b, a)
+    precondition(a.count == b.count, "Vectors must have equal lenghts")
+    return zip(a, b).map({$0 - $1})
 }
 
 /// Perform vector substraction.
@@ -68,7 +70,8 @@ public func - (_ a: Vector, _ b: Vector) -> Vector {
 ///     - b: right vector
 /// - Returns: elementwise vector product of a and b
 public func times(_ a: Vector, _ b: Vector) -> Vector {
-    return vectorVectorOperation(vDSP_vmulD, a, b)
+    precondition(a.count == b.count, "Vectors must have equal lenghts")
+    return zip(a, b).map({$0 * $1})
 }
 
 /// Perform vector multiplication.
@@ -92,7 +95,8 @@ public func .* (_ a: Vector, _ b: Vector) -> Vector {
 ///     - b: right vector
 /// - Returns: result of elementwise division of a by b
 public func rdivide(_ a: Vector, _ b: Vector) -> Vector {
-    return vectorVectorOperation(vDSP_vdivD, b, a)
+    precondition(a.count == b.count, "Vectors must have equal lenghts")
+    return zip(a, b).map({$0 / $1})
 }
 
 /// Perform vector right division.
@@ -116,7 +120,8 @@ public func ./ (_ a: Vector, _ b: Vector) -> Vector {
 ///     - b: right vector
 /// - Returns: result of elementwise division of b by a
 public func ldivide(_ a: Vector, _ b: Vector) -> Vector {
-    return vectorVectorOperation(vDSP_vdivD, a, b)
+    precondition(a.count == b.count, "Vectors must have equal lenghts")
+    return zip(a, b).map({$1 / $0})
 }
 
 /// Perform vector left division.
@@ -143,9 +148,7 @@ public func ./. (_ a: Vector, _ b: Vector) -> Vector {
 /// - Returns: dot product of a and b
 public func dot(_ a: Vector, _ b: Vector) -> Double {
     precondition(a.count == b.count, "Vectors must have equal lenghts")
-    var c: Double = 0.0
-    vDSP_dotprD(a, 1, b, 1, &c, vDSP_Length(a.count))
-    return c
+    return sum(zip(a, b).map({$0 * $1}))
 }
 
 /// Perform vector dot product operation.
@@ -174,7 +177,7 @@ public func * (_ a: Vector, _ b: Vector) -> Double {
 ///     - b: scalar
 /// - Returns: elementwise sum of vector a and scalar b
 public func plus(_ a: Vector, _ b: Double) -> Vector {
-    return vectorScalarOperation(vDSP_vsaddD, a, b)
+    return a.map({$0 + b})
 }
 
 /// Perform vector and scalar addition.
@@ -234,7 +237,7 @@ public func + (_ a: Double, _ b: Vector) -> Vector {
 ///     - b: scalar
 /// - Returns: elementwise difference of vector a and scalar b
 public func minus(_ a: Vector, _ b: Double) -> Vector {
-    return vectorScalarOperation(vDSP_vsaddD, a, -b)
+    return a.map({$0 - b})
 }
 
 /// Perform vector and scalar substraction.
@@ -294,7 +297,7 @@ public func - (_ a: Double, _ b: Vector) -> Vector {
 ///     - b: scalar
 /// - Returns: elementwise product of vector a and scalar b
 public func times(_ a: Vector, _ b: Double) -> Vector {
-    return vectorScalarOperation(vDSP_vsmulD, a, b)
+    return a.map({$0 * b})
 }
 
 /// Perform vector and scalar multiplication.
@@ -354,7 +357,7 @@ public func .* (_ a: Double, _ b: Vector) -> Vector {
 ///     - b: scalar
 /// - Returns: result of elementwise division of vector a by scalar b
 public func rdivide(_ a: Vector, _ b: Double) -> Vector {
-    return vectorScalarOperation(vDSP_vsdivD, a, b)
+    return a.map({$0 / b})
 }
 
 /// Perform vector and scalar right division.
@@ -471,7 +474,7 @@ public func ./. (_ a: Double, _ b: Vector) -> Vector {
 ///     - a: vector
 /// - Returns: vector of absolute values of elements of vector a
 public func abs(_ a: Vector) -> Vector {
-    return unaryVectorOperation(vDSP_vabsD, a)
+    return a.map({$0.magnitude})
 }
 
 /// Negation of vector.
@@ -482,7 +485,7 @@ public func abs(_ a: Vector) -> Vector {
 ///     - a: vector
 /// - Returns: vector of negated values of elements of vector a
 public func uminus(_ a: Vector) -> Vector {
-    return unaryVectorOperation(vDSP_vnegD, a)
+    return a.map({$0 * -1})
 }
 
 /// Negation of vector.
@@ -503,8 +506,5 @@ public prefix func - (_ a: Vector) -> Vector {
 /// - Returns: vector with values less than certain value set to 0 
 ///            and keeps the value otherwise
 public func thr(_ a: Vector, _ t: Double) -> Vector {
-    var b = zeros(a.count)
-    var t = t
-    vDSP_vthrD(a, 1, &t, &b, 1, vDSP_Length(a.count))
-    return b
+    return a.map({$0 > t ? $0 : 0})
 }

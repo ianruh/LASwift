@@ -1,0 +1,5 @@
+module CLAPACK [system] {
+  header "shim.h"
+  link "clapack"
+  export *
+}

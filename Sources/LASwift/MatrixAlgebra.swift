@@ -6,7 +6,7 @@
 // This software may be modified and distributed under the terms
 // of the BSD license. See the LICENSE file for details.
 
-import Accelerate
+import CLAPACK
 
 /// Matrix triangular part.
 ///
@@ -38,9 +38,17 @@ public func trace(_ A: Matrix) -> Double {
 /// - Returns: transposed matrix
 public func transpose(_ A: Matrix) -> Matrix {
     let C: Matrix = zeros(A.cols, A.rows)
-    vDSP_mtransD(A.flat, 1, &(C.flat), 1, vDSP_Length(A.cols), vDSP_Length(A.rows))
+
+    for n in 0..<A.flat.count {
+        let i: Int = n/A.rows
+        let j: Int = n%A.rows
+        C.flat[n] = A.flat[A.cols*j + i]
+    }
+
     return C
 }
+
+
 
 /// Transpose matrix.
 ///
@@ -63,8 +71,33 @@ public postfix func ′ (_ a: Matrix) -> Matrix {
 /// - Returns: matrix product of A and B
 public func mtimes(_ A: Matrix, _ B: Matrix) -> Matrix {
     precondition(A.cols == B.rows, "Matrix dimensions must agree")
-    let C: Matrix = zeros(A.rows, B.cols)
-    vDSP_mmulD(A.flat, 1, B.flat, 1, &(C.flat), 1, vDSP_Length(A.rows), vDSP_Length(B.cols), vDSP_Length(A.cols))
+
+    // CBLAS enum values
+    let cblasNoTranspose = CBLAS_TRANSPOSE.init(rawValue: 111)
+//    let cblasTranspose = CBLAS_TRANSPOSE.init(rawValue: 112)
+
+    /* Compute matrix product*/
+
+    let A_copy = Matrix(A)
+    let B_copy = Matrix(B)
+
+    let order = CBLAS_ORDER.init(101) // Row major ordering
+    let M = __CLPK_integer(A_copy.rows)
+    let N = __CLPK_integer(B_copy.cols)
+    let K = __CLPK_integer(A_copy.cols)
+    let alpha: Double = 1.0
+    let beta: Double = 0.0
+    let LDA = __CLPK_integer(A_copy.cols)
+    let LDB = __CLPK_integer(B_copy.cols)
+
+    let C = zeros(A_copy.rows, B_copy.cols)
+    let LDC = __CLPK_integer(C.cols)
+
+    let transposeA = cblasNoTranspose
+    let transposeB = cblasNoTranspose
+
+    cblas_dgemm(order, transposeA, transposeB, M, N, K, alpha, &A_copy.flat, LDA, &B_copy.flat, LDB, beta, &C.flat, LDC)
+
     return C
 }
 
@@ -369,17 +402,14 @@ public func tri(_ A: Matrix, _ t: Triangle) -> Matrix {
     switch t {
     case .Upper:
         for i in (0..<A.rows) {
-            A.flat.withUnsafeBufferPointer { bufPtr in
-                let p = bufPtr.baseAddress! + (i * _A.cols) + i
-                vDSP_mmovD(p, &_A.flat[(i * _A.cols) + i], vDSP_Length(A.cols - i), vDSP_Length(1), vDSP_Length(A.cols), vDSP_Length(_A.cols))
+            if(i == A.cols) {
+                break
             }
+            _A[i...i, i..<A.cols] = A[i...i, i..<A.cols]
         }
     case .Lower:
         for i in (0..<A.rows) {
-            A.flat.withUnsafeBufferPointer { bufPtr in
-                let p = bufPtr.baseAddress! + (i * _A.cols)
-                vDSP_mmovD(p, &_A.flat[(i * _A.cols)], vDSP_Length(i + 1), vDSP_Length(1), vDSP_Length(A.cols), vDSP_Length(_A.cols))
-            }
+            _A[i...i, 0...min(i, A.cols-1)] = A[i...i, 0...min(i, A.cols-1)]
         }
     }
     return _A

@@ -8,6 +8,8 @@
 [![Version](https://img.shields.io/cocoapods/v/LASwift.svg?style=flat)](http://cocoapods.org/pods/LASwift)
 [![Platform](https://img.shields.io/cocoapods/p/LASwift.svg?style=flat)](http://cocoapods.org/pods/LASwift)
 
+**Godly flags**: `-Xswiftc -Ounchecked -Xcc -ffast-math -Xcc -O2`
+
 LASwift provides most of linear algebra operations on vectors and matrices
 required to implement machine learning algorithms. Library syntax is inspired by
 Matlab matrix manipulation and Haskell linear algebra library 'hmatrix'. LASwift is

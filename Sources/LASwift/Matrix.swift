@@ -6,7 +6,7 @@
 // This software may be modified and distributed under the terms
 // of the BSD license. See the LICENSE file for details.
 
-import Accelerate
+import CLAPACK
 
 // MARK: - One-line creators for matrices
 
@@ -371,14 +371,12 @@ extension Matrix {
             precondition(indexIsValidForRow(row.lowerBound, col.lowerBound), "Invalid range")
             precondition(indexIsValidForRow(row.upperBound, col.upperBound), "Invalid range")
 
-            let dst = Matrix(row.count, col.count)
-
-            flat.withUnsafeBufferPointer { srcBuf in
-                let srcPtr = srcBuf.baseAddress! + row.lowerBound * rows + col.lowerBound
-                vDSP_mmovD(srcPtr, &dst.flat,
-                           vDSP_Length(col.count), vDSP_Length(row.count),
-                           vDSP_Length(cols), vDSP_Length(col.count))
+            var newFlat: [Double] = []
+            for r in row {
+                newFlat.append(contentsOf: self.flat[(r*cols + col.first!)...(r*cols + col.last!)])
             }
+
+            let dst = Matrix(row.count, col.count, newFlat)
 
             return dst
         }
@@ -388,11 +386,13 @@ extension Matrix {
             precondition(indexIsValidForRow(row.upperBound, col.upperBound), "Invalid range")
             precondition(newValue.cols == col.count && newValue.rows == row.count, "Matrix dimensions must agree")
 
-            flat.withUnsafeMutableBufferPointer { dstBuf in
-                let dstPtr = dstBuf.baseAddress! + row.lowerBound * rows + col.lowerBound
-                vDSP_mmovD(newValue.flat, dstPtr,
-                           vDSP_Length(col.count), vDSP_Length(row.count),
-                           vDSP_Length(newValue.cols), vDSP_Length(cols))
+            var rows: [ArraySlice<Double>] = []
+            for r in 0..<newValue.rows {
+                rows.append(newValue.flat[r*newValue.cols..<((r+1)*newValue.cols)])
+            }
+
+            for r in 0..<row.count {
+                self.flat[((row.first! + r)*self.cols+col.first!)...((row.first! + r)*self.cols+col.last!)] = rows[r]
             }
         }
     }
@@ -454,20 +454,14 @@ public func insert(_ m: Matrix, row: Vector, at index: Int) -> Matrix {
 public func insert(_ m: Matrix, rows: Matrix, at index: Int) -> Matrix {
     precondition(rows.cols == m.cols, "Input dimensions must agree")
     precondition(index <= m.rows, "Index out of bounds")
-    
+
     let res = zeros(m.rows + rows.rows, m.cols)
-    
-    if (index > 0) {
-        vDSP_mmovD(m.flat, &res.flat, vDSP_Length(m.cols), vDSP_Length(index), vDSP_Length(m.cols), vDSP_Length(res.cols))
+    if(index != 0) {
+        res[0..<index, 0..<m.cols] = m[0..<index, 0..<m.cols]
     }
-    
-    vDSP_mmovD(rows.flat, &res.flat[index * res.cols], vDSP_Length(m.cols), vDSP_Length(rows.rows), vDSP_Length(m.cols), vDSP_Length(res.cols))
-    
-    if (index < m.rows) {
-        m.flat.withUnsafeBufferPointer { bufPtr in
-            let p = bufPtr.baseAddress! + index * m.cols
-            vDSP_mmovD(p, &res.flat[(index + rows.rows) * res.cols], vDSP_Length(m.cols), vDSP_Length(m.rows - index), vDSP_Length(m.cols), vDSP_Length(res.cols))
-        }
+    res[index..<index+rows.rows, 0..<m.cols] = rows
+    if(index+rows.rows != res.rows) {
+        res[index+rows.rows..<res.rows, 0..<res.cols] = m[index..<m.rows, 0..<m.cols]
     }
     
     return res
@@ -668,22 +662,16 @@ public func insert(_ m: Matrix, col: Vector, at index: Int) -> Matrix {
 public func insert(_ m: Matrix, cols: Matrix, at index: Int) -> Matrix {
     precondition(cols.rows == m.rows, "Input dimensions must agree")
     precondition(index <= m.cols && index >= 0, "Index out of bounds")
-    
+
     let res = zeros(m.rows, m.cols + cols.cols)
-    
-    if (index > 0) {
-        vDSP_mmovD(m.flat, &res.flat, vDSP_Length(index), vDSP_Length(m.rows), vDSP_Length(m.cols), vDSP_Length(res.cols))
+    if(index != 0) {
+        res[0..<res.rows, 0..<index] = m[0..<res.rows, 0..<index]
     }
-    
-    vDSP_mmovD(cols.flat, &res.flat[index], vDSP_Length(cols.cols), vDSP_Length(m.rows), vDSP_Length(cols.cols), vDSP_Length(res.cols))
-    
-    if (index < m.cols) {
-        m.flat.withUnsafeBufferPointer { bufPtr in
-            let p = bufPtr.baseAddress! + index
-            vDSP_mmovD(p, &res.flat[index + cols.cols], vDSP_Length(m.cols - index), vDSP_Length(m.rows), vDSP_Length(m.cols), vDSP_Length(res.cols))
-        }
+    res[0..<m.rows, index..<index+cols.cols] = cols
+    if(index+cols.cols != res.cols) {
+        res[0..<res.rows, index+cols.cols..<res.cols] = m[0..<m.rows, index..<m.cols]
     }
-    
+
     return res
 }
 
@@ -957,24 +945,19 @@ public func slice(_ m: Matrix, _ e: (er: Extractor, ec: Extractor)) -> Matrix {
 }
 
 func slice(_ m: Matrix, _ rr: [Int], _ cr: [Int]) -> Matrix {
-    let res = zeros(rr.count, cr.count)
-    
-    // vgathrD is using 1-based indices
-    let _cr = cr.map { vDSP_Length($0 + 1) }
-    
-    _ = zip(rr, (0..<res.rows)).map { (i: Int, j: Int) -> () in
-        var row = zeros(res.cols)
-        m.flat.withUnsafeBufferPointer { bufPtr in
-            let p = bufPtr.baseAddress! + i * m.cols
-            vDSP_vgathrD(p, _cr, 1, &row, 1, vDSP_Length(res.cols))
-        }
-        res.flat.withUnsafeMutableBufferPointer { bufPtr in
-            let p = bufPtr.baseAddress! + j * res.cols
-            vDSP_mmovD(row, p, vDSP_Length(res.cols), vDSP_Length(1), vDSP_Length(res.cols), vDSP_Length(res.cols))
+
+    var rows : [ArraySlice<Double>] = []
+    for r in rr {
+        rows.append(m.flat[r*m.cols..<(r+1)*m.cols])
+    }
+    var newFlat: [Double] = []
+    for row in rows {
+        for c in cr {
+            newFlat.append(row[row.startIndex+c])
         }
     }
     
-    return res
+    return Matrix(rr.count, cr.count, newFlat)
 }
 
 /// Construct new matrix from source using specified extractor.

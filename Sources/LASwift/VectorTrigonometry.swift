@@ -6,7 +6,7 @@
 // This software may be modified and distributed under the terms
 // of the BSD license. See the LICENSE file for details.
 
-import Accelerate
+import CLAPACK
 
 // MARK: - Trigonometric operations on vector
 
@@ -17,7 +17,7 @@ import Accelerate
 ///     - a: vector
 /// - Returns: sine of a vector values
 public func sin(_ a: Vector) -> Vector {
-    return vectorFunction(vvsin, a)
+    return a.map({Double.sin($0)})
 }
 
 /// Return the cosine of `a`, where `a` is given in radians and the return value is
@@ -27,7 +27,7 @@ public func sin(_ a: Vector) -> Vector {
 ///     - a: vector
 /// - Returns: cosine of a vector values
 public func cos(_ a: Vector) -> Vector {
-    return vectorFunction(vvcos, a)
+    return a.map({Double.cos($0)})
 }
 
 /// Return the tangent of `a`, where `a` is given in radians.
@@ -40,5 +40,5 @@ public func cos(_ a: Vector) -> Vector {
 ///     - a: vector
 /// - Returns: tangent of a vector values
 public func tan(_ a: Vector) -> Vector {
-    return vectorFunction(vvtan, a)
+    return a.map({Double.tan($0)})
 }

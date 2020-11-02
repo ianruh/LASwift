@@ -7,9 +7,14 @@
 //
 
 import Darwin
+
 import Quick
 import Nimble
 import LASwift
+
+//private func sqrt(_ num: Double) -> Double {
+//    return num.squareRoot()
+//}
 
 class VectorSpec: QuickSpec {
     override func spec() {
@@ -203,7 +208,7 @@ class VectorSpec: QuickSpec {
             }
             it("sqrt") {
                 let vec = [1.0, 2.0, 3.0]
-                let res = [sqrt(1.0), sqrt(2.0), sqrt(3.0)]
+                let res: [Double] = [sqrt(1.0), sqrt(2.0), sqrt(3.0)]
                 expect(sqrt(vec)).to(beCloseTo(res))
                 expect(sqrt(vec)).to(beCloseTo(vec .^ 0.5))
             }

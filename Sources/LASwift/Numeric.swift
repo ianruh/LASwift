@@ -6,8 +6,6 @@
 // This software may be modified and distributed under the terms
 // of the BSD license. See the LICENSE file for details.
 
-import Darwin
-
 precedencegroup EquivalencePrecedence {
     higherThan: ComparisonPrecedence
     lowerThan: AdditionPrecedence
@@ -26,7 +24,7 @@ let deps: Double = 1e-14
 
 func ==~ (left: Double, right: Double) -> Bool
 {
-    return fabs(left.distance(to: right)) <= deps
+    return left.distance(to: right).magnitude <= deps
 }
 
 func !=~ (left: Double, right: Double) -> Bool

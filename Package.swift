@@ -1,4 +1,4 @@
-// swift-tools-version:4.0
+// swift-tools-version:5.2
 // Package.swift
 //
 // Copyright (c) 2017 Alexander Taraymovich <taraymovich@me.com>
@@ -15,16 +15,20 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/Quick/Quick.git", from: "2.0.0"),
-        .package(url: "https://github.com/Quick/Nimble.git", from: "8.0.1")
+        .package(url: "https://github.com/Quick/Nimble.git", from: "8.0.1"),
+        .package(url: "https://github.com/apple/swift-numerics", from: "0.0.5")
     ],
     targets: [
         .target(
             name: "LASwift", 
-            dependencies: [],
-            path: "Sources"),
+            dependencies: [
+                "CLAPACK",
+                .product(name: "Numerics", package: "swift-numerics"),
+            ]),
         .testTarget(
             name: "LASwiftTests",
             dependencies: ["LASwift", "Quick", "Nimble"],
-            path: "Example/Tests")
+            path: "Example/Tests/LASwiftTests"),
+        .systemLibrary(name: "CLAPACK")
     ]
 )

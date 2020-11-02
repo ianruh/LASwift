@@ -6,7 +6,7 @@
 // This software may be modified and distributed under the terms
 // of the BSD license. See the LICENSE file for details.
 
-import Accelerate
+import CLAPACK
 
 // MARK: - Statistical operations on vector
 
@@ -16,7 +16,7 @@ import Accelerate
 ///     - a: vector
 /// - Returns: largest element of vector a
 public func max(_ a: Vector) -> Double {
-    return aggVectorFunction(vDSP_maxvD, a)
+    return a.max()!
 }
 
 /// Return the index of largest element of vector.
@@ -25,7 +25,7 @@ public func max(_ a: Vector) -> Double {
 ///     - a: vector
 /// - Returns: index of largest element of vector a
 public func maxi(_ a: Vector) -> Int {
-    return aggVectorIFunction(vDSP_maxviD, a)
+    return a.firstIndex(of: a.max()!)!
 }
 
 /// Return the smallest element of vector.
@@ -34,7 +34,7 @@ public func maxi(_ a: Vector) -> Int {
 ///     - a: vector
 /// - Returns: smallest element of vector a
 public func min(_ a: Vector) -> Double {
-    return aggVectorFunction(vDSP_minvD, a)
+    return a.min()!
 }
 
 /// Return the index of smallest element of vector.
@@ -43,7 +43,7 @@ public func min(_ a: Vector) -> Double {
 ///     - a: vector
 /// - Returns: index of smallest element of vector a
 public func mini(_ a: Vector) -> Int {
-    return aggVectorIFunction(vDSP_minviD, a)
+    return a.firstIndex(of: a.min()!)!
 }
 
 /// Return mean (statistically average) value of vector.
@@ -52,7 +52,7 @@ public func mini(_ a: Vector) -> Int {
 ///     - a: vector
 /// - Returns: mean value of vector a
 public func mean(_ a: Vector) -> Double {
-    return aggVectorFunction(vDSP_meanvD, a)
+    return sum(a)/Double(a.count)
 }
 
 /// Return standard deviation value of vector.
@@ -61,11 +61,8 @@ public func mean(_ a: Vector) -> Double {
 ///     - a: vector
 /// - Returns: standard deviation value of vector a
 public func std(_ a: Vector) -> Double {
-    var m: Double = 0.0
-    var s: Double = 0.0
-    var c = Vector(repeating: 0.0, count: a.count)
-    vDSP_normalizeD(a, 1, &c, 1, &m, &s, vDSP_Length(a.count))
-    return s
+    let μ = mean(a)
+    return Double.sqrt(sumsq(a - μ)/Double(a.count))
 }
 
 /// Return normalized vector (substract mean value and divide by standard deviation).
@@ -74,11 +71,9 @@ public func std(_ a: Vector) -> Double {
 ///     - a: vector
 /// - Returns: normalized vector a
 public func normalize(_ a: Vector) -> Vector {
-    var m: Double = 0.0
-    var s: Double = 0.0
-    var c = Vector(repeating: 0.0, count: a.count)
-    vDSP_normalizeD(a, 1, &c, 1, &m, &s, vDSP_Length(a.count))
-    return c
+    let dev = std(a)
+    let avg = mean(a)
+    return a.map({($0-avg) / dev})
 }
 
 /// Return sum of vector's elements.
@@ -87,7 +82,7 @@ public func normalize(_ a: Vector) -> Vector {
 ///     - a: vector
 /// - Returns: sum of elements of vector a
 public func sum(_ a: Vector) -> Double {
-    return aggVectorFunction(vDSP_sveD, a)
+    return a.reduce(0, +)
 }
 
 /// Return sum of vector's squared elements.
@@ -96,5 +91,6 @@ public func sum(_ a: Vector) -> Double {
 ///     - a: vector
 /// - Returns: sum of squared elements of vector a
 public func sumsq(_ a: Vector) -> Double {
-    return aggVectorFunction(vDSP_svesqD, a)
+    let sq = square(a)
+    return sq.reduce(0, +)
 }

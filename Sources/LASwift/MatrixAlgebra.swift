@@ -7,6 +7,7 @@
 // of the BSD license. See the LICENSE file for details.
 
 import CLAPACK
+import CBLAS
 
 /// Matrix triangular part.
 ///
@@ -327,11 +328,6 @@ public func gsvd(_ A: Matrix, _ B: Matrix) -> (U: Matrix, V: Matrix, Q: Matrix, 
     var LDV = P
     var LDQ = N
     
-    let lWork = max(max(Int(3*N),Int(M)),Int(P))+Int(N)
-    var iWork = [__CLPK_integer](repeating: 0, count: Int(N))
-    var work = Vector(repeating: 0.0, count: Int(lWork) * 4)
-    var error = __CLPK_integer(0)
-    
     var k = __CLPK_integer()
     var l = __CLPK_integer()
     
@@ -340,8 +336,29 @@ public func gsvd(_ A: Matrix, _ B: Matrix) -> (U: Matrix, V: Matrix, Q: Matrix, 
     let Q = Matrix(Int(LDQ), Int(N))
     var alpha = Vector(repeating: 0.0, count: Int(N))
     var beta = Vector(repeating: 0.0, count: Int(N))
-    
+
+    // dggsvd_ is depricated by BLAS, but is still included in Accelerate. However, dggsvd3_ is not in Accelrate.
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    var lWork = __CLPK_integer(max(max(Int(3*N),Int(M)),Int(P))+Int(N))
+    var iWork = [__CLPK_integer](repeating: 0, count: Int(N))
+    var work = Vector(repeating: 0.0, count: Int(lWork) * 4)
+    var error = __CLPK_integer(0)
+
     dggsvd_(&jobu, &jobv, &jobq, &M, &N, &P, &k, &l, &_A.flat, &LDA, &_B.flat, &LDB, &alpha, &beta, &U.flat, &LDU, &V.flat, &LDV, &Q.flat, &LDQ, &work, &iWork, &error)
+    #else
+    var lWork = __CLPK_integer(-1)
+    var iWork = [__CLPK_integer](repeating: 0, count: Int(N))
+    var wkOpt = __CLPK_doublereal(0.0)
+    var error = __CLPK_integer(0)
+
+    dggsvd3_(&jobu, &jobv, &jobq, &M, &N, &P, &k, &l, &_A.flat, &LDA, &_B.flat, &LDB, &alpha, &beta, &U.flat, &LDU, &V.flat, &LDV, &Q.flat, &LDQ, &wkOpt, &lWork, &iWork, &error)
+
+    lWork = __CLPK_integer(wkOpt)
+    var work = Vector(repeating: 0.0, count: Int(lWork) * 4)
+
+    dggsvd3_(&jobu, &jobv, &jobq, &M, &N, &P, &k, &l, &_A.flat, &LDA, &_B.flat, &LDB, &alpha, &beta, &U.flat, &LDU, &V.flat, &LDV, &Q.flat, &LDQ, &work, &lWork, &iWork, &error)
+
+    #endif
     
     //precondition(error == 0, "Failed to compute SVD")
     if error != 0 {

@@ -6,8 +6,6 @@
 //  Copyright © 2017 CocoaPods. All rights reserved.
 //
 
-import Darwin
-
 import Quick
 import Nimble
 import LASwift
@@ -208,28 +206,28 @@ class VectorSpec: QuickSpec {
             }
             it("sqrt") {
                 let vec = [1.0, 2.0, 3.0]
-                let res: [Double] = [sqrt(1.0), sqrt(2.0), sqrt(3.0)]
+                let res: [Double] = [Double.sqrt(1.0), Double.sqrt(2.0), Double.sqrt(3.0)]
                 expect(sqrt(vec)).to(beCloseTo(res))
                 expect(sqrt(vec)).to(beCloseTo(vec .^ 0.5))
             }
             it("exp") {
                 let vec = [1.0, 2.0, 3.0]
-                let res = [exp(1.0), exp(2.0), exp(3.0)]
+                let res = [Double.exp(1.0), Double.exp(2.0), Double.exp(3.0)]
                 expect(exp(vec)).to(beCloseTo(res))
             }
             it("log") {
                 let vec = [1.0, 2.0, 3.0]
-                let res = [log(1.0), log(2.0), log(3.0)]
+                let res = [Double.log(1.0), Double.log(2.0), Double.log(3.0)]
                 expect(log(vec)).to(beCloseTo(res))
             }
             it("log10") {
                 let vec = [1.0, 2.0, 3.0]
-                let res = [log10(1.0), log10(2.0), log10(3.0)]
+                let res = [Double.log10(1.0), Double.log10(2.0), Double.log10(3.0)]
                 expect(log10(vec)).to(beCloseTo(res))
             }
             it("log2") {
                 let vec = [1.0, 2.0, 3.0]
-                let res = [log2(1.0), log2(2.0), log2(3.0)]
+                let res = [Double.log2(1.0), Double.log2(2.0), Double.log2(3.0)]
                 expect(log2(vec)).to(beCloseTo(res))
             }
         }
@@ -237,17 +235,17 @@ class VectorSpec: QuickSpec {
         describe("Vector trigonometric tests") {
             it("sin") {
                 let vec = [1.0, 2.0, 3.0]
-                let res = [sin(1.0), sin(2.0), sin(3.0)]
+                let res = [Double.sin(1.0), Double.sin(2.0), Double.sin(3.0)]
                 expect(sin(vec)).to(beCloseTo(res))
             }
             it("cos") {
                 let vec = [1.0, 2.0, 3.0]
-                let res = [cos(1.0), cos(2.0), cos(3.0)]
+                let res = [Double.cos(1.0), Double.cos(2.0), Double.cos(3.0)]
                 expect(cos(vec)).to(beCloseTo(res))
             }
             it("tan") {
                 let vec = [1.0, 2.0, 3.0]
-                let res = [tan(1.0), tan(2.0), tan(3.0)]
+                let res = [Double.tan(1.0), Double.tan(2.0), Double.tan(3.0)]
                 expect(tan(vec)).to(beCloseTo(res))
             }
         }
@@ -280,7 +278,7 @@ class VectorSpec: QuickSpec {
             }
             it("std") {
                 let vec = [1.0, 2.0, 3.0]
-                let res = sqrt(2.0 / 3.0)
+                let res = Double.sqrt(2.0 / 3.0)
                 expect(std(vec)).to(beCloseTo(res))
             }
             it("sum") {

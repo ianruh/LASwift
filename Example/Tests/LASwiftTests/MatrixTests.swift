@@ -6,8 +6,6 @@
 //  Copyright © 2017 CocoaPods. All rights reserved.
 //
 
-import Darwin
-
 import Quick
 import Nimble
 import LASwift
@@ -414,28 +412,28 @@ class MatrixSpec: QuickSpec {
             }
             it("sqrt") {
                 let m1 = Matrix([[1.0, 2.0], [3.0, 4.0]])
-                let res = Matrix([[sqrt(1.0), sqrt(2.0)], [sqrt(3.0), sqrt(4.0)]])
+                let res = Matrix([[Double.sqrt(1.0), Double.sqrt(2.0)], [Double.sqrt(3.0), Double.sqrt(4.0)]])
                 expect(sqrt(m1)) == res
                 expect(m1 .^ 0.5) == res
             }
             it("exp") {
                 let m1 = Matrix([[1.0, 2.0], [3.0, 4.0]])
-                let res = Matrix([[exp(1.0), exp(2.0)], [exp(3.0), exp(4.0)]])
+                let res = Matrix([[Double.exp(1.0), Double.exp(2.0)], [Double.exp(3.0), Double.exp(4.0)]])
                 expect(exp(m1)) == res
             }
             it("log") {
                 let m1 = Matrix([[1.0, 2.0], [3.0, 4.0]])
-                let res = Matrix([[log(1.0), log(2.0)], [log(3.0), log(4.0)]])
+                let res = Matrix([[Double.log(1.0), Double.log(2.0)], [Double.log(3.0), Double.log(4.0)]])
                 expect(log(m1)) == res
             }
             it("log10") {
                 let m1 = Matrix([[1.0, 2.0], [3.0, 4.0]])
-                let res = Matrix([[log10(1.0), log10(2.0)], [log10(3.0), log10(4.0)]])
+                let res = Matrix([[Double.log10(1.0), Double.log10(2.0)], [Double.log10(3.0), Double.log10(4.0)]])
                 expect(log10(m1)) == res
             }
             it("log2") {
                 let m1 = Matrix([[1.0, 2.0], [3.0, 4.0]])
-                let res = Matrix([[log2(1.0), log2(2.0)], [log2(3.0), log2(4.0)]])
+                let res = Matrix([[Double.log2(1.0), Double.log2(2.0)], [Double.log2(3.0), Double.log2(4.0)]])
                 expect(log2(m1)) == res
             }
         }
@@ -443,17 +441,17 @@ class MatrixSpec: QuickSpec {
         describe("Matrix trigonometric tests") {
             it("sin") {
                 let m1 = Matrix([[1.0, 2.0], [3.0, 4.0]])
-                let res = Matrix([[sin(1.0), sin(2.0)], [sin(3.0), sin(4.0)]])
+                let res = Matrix([[Double.sin(1.0), Double.sin(2.0)], [Double.sin(3.0), Double.sin(4.0)]])
                 expect(sin(m1)) == res
             }
             it("cos") {
                 let m1 = Matrix([[1.0, 2.0], [3.0, 4.0]])
-                let res = Matrix([[cos(1.0), cos(2.0)], [cos(3.0), cos(4.0)]])
+                let res = Matrix([[Double.cos(1.0), Double.cos(2.0)], [Double.cos(3.0), Double.cos(4.0)]])
                 expect(cos(m1)) == res
             }
             it("tan") {
                 let m1 = Matrix([[1.0, 2.0], [3.0, 4.0]])
-                let res = Matrix([[tan(1.0), tan(2.0)], [tan(3.0), tan(4.0)]])
+                let res = Matrix([[Double.tan(1.0), Double.tan(2.0)], [Double.tan(3.0), Double.tan(4.0)]])
                 expect(tan(m1)) == res
             }
         }
@@ -501,8 +499,8 @@ class MatrixSpec: QuickSpec {
             }
             it("std") {
                 let m1 = Matrix([[1.0, 4.0], [3.0, 2.0]])
-                let res1 = [sqrt(4.5 / 2.0), sqrt(0.5 / 2.0)]
-                let res2 = [sqrt(2.0 / 2.0), sqrt(2.0 / 2.0)]
+                let res1 = [Double.sqrt(4.5 / 2.0), Double.sqrt(0.5 / 2.0)]
+                let res2 = [Double.sqrt(2.0 / 2.0), Double.sqrt(2.0 / 2.0)]
                 expect(std(m1)).to(beCloseTo(res1))
                 expect(std(m1, .Row)).to(beCloseTo(res1))
                 expect(std(m1, .Column)).to(beCloseTo(res2))

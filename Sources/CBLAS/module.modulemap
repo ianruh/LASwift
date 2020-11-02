@@ -1,0 +1,5 @@
+module CBLAS [system] {
+  header "shim.h"
+  link "blas"
+  export *
+}

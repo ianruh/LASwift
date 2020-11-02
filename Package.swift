@@ -24,11 +24,13 @@ let package = Package(
             dependencies: [
                 "CLAPACK",
                 .product(name: "Numerics", package: "swift-numerics"),
+                "CBLAS"
             ]),
         .testTarget(
             name: "LASwiftTests",
             dependencies: ["LASwift", "Quick", "Nimble"],
             path: "Example/Tests/LASwiftTests"),
-        .systemLibrary(name: "CLAPACK")
+        .systemLibrary(name: "CLAPACK"),
+        .systemLibrary(name: "CBLAS")
     ]
 )

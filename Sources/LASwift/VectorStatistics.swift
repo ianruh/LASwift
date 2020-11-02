@@ -85,6 +85,7 @@ public func sum(_ a: Vector) -> Double {
     return a.reduce(0, +)
 }
 
+
 /// Return sum of vector's squared elements.
 ///
 /// - Parameters

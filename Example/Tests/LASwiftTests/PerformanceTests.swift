@@ -87,4 +87,19 @@ class PerformanceTests: XCTestCase {
             _ = maxi(self.a, .Column)
         }
     }
+
+    static var allTests = [
+        ("Test Random", testRandomMatrix),
+        ("Test Invert", testInvert),
+        ("Test Cholesy", testCholesky),
+        ("Test Dot", testDot),
+        ("Test Transpose", testTranspose),
+        ("Test Multiply", testMultiply),
+        ("Test Sigmoid", testSigmoid),
+        ("Test ReLU", testReLU),
+        ("Test Sum By Rows", testSumByRows),
+        ("Test Sum By Columns", testSumByColumns),
+        ("Test MaxIndicesByRows", testMaxIndicesByRows),
+        ("Test MaxIndicesByColumns", testMaxIndicesByColumns),
+    ]
 }

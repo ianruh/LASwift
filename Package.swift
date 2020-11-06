@@ -1,4 +1,4 @@
-// swift-tools-version:5.2
+// swift-tools-version:5.1
 // Package.swift
 //
 // Copyright (c) 2017 Alexander Taraymovich <taraymovich@me.com>

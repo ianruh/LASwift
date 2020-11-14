@@ -1,4 +1,0 @@
-module QuickObjCRuntime {
-    umbrella "/Users/ianruh/Dev/LASwift/.build/checkouts/Quick/Sources/QuickObjCRuntime/include"
-    export *
-}

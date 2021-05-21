@@ -7,6 +7,9 @@
 // of the BSD license. See the LICENSE file for details.
 
 import CLAPACK
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+import Accelerate
+#endif
 
 // MARK: - Trigonometric operations on vector
 
@@ -17,7 +20,11 @@ import CLAPACK
 ///     - a: vector
 /// - Returns: sine of a vector values
 public func sin(_ a: Vector) -> Vector {
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return vectorFunction(vvsin, a)
+    #else
     return a.map({Double.sin($0)})
+    #endif
 }
 
 /// Return the cosine of `a`, where `a` is given in radians and the return value is
@@ -27,7 +34,11 @@ public func sin(_ a: Vector) -> Vector {
 ///     - a: vector
 /// - Returns: cosine of a vector values
 public func cos(_ a: Vector) -> Vector {
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return vectorFunction(vvcos, a)
+    #else
     return a.map({Double.cos($0)})
+    #endif
 }
 
 /// Return the tangent of `a`, where `a` is given in radians.
@@ -40,5 +51,9 @@ public func cos(_ a: Vector) -> Vector {
 ///     - a: vector
 /// - Returns: tangent of a vector values
 public func tan(_ a: Vector) -> Vector {
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return vectorFunction(vvtan, a)
+    #else
     return a.map({Double.tan($0)})
+    #endif
 }

@@ -7,6 +7,9 @@
 // of the BSD license. See the LICENSE file for details.
 
 import CLAPACK
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+import Accelerate
+#endif
 
 // MARK: - Arithmetic operations on two vectors
 
@@ -20,7 +23,11 @@ import CLAPACK
 /// - Returns: elementwise vector sum of a and b
 public func plus(_ a: Vector, _ b: Vector) -> Vector {
     precondition(a.count == b.count, "Vectors must have equal lenghts")
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return vectorVectorOperation(vDSP_vaddD, a, b)
+    #else
     return zip(a, b).map({$0 + $1})
+    #endif
 
 }
 
@@ -46,7 +53,11 @@ public func + (_ a: Vector, _ b: Vector) -> Vector {
 /// - Returns: elementwise vector difference of a and b
 public func minus(_ a: Vector, _ b: Vector) -> Vector {
     precondition(a.count == b.count, "Vectors must have equal lenghts")
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return vectorVectorOperation(vDSP_vsubD, b, a)
+    #else
     return zip(a, b).map({$0 - $1})
+    #endif
 }
 
 /// Perform vector substraction.
@@ -71,7 +82,11 @@ public func - (_ a: Vector, _ b: Vector) -> Vector {
 /// - Returns: elementwise vector product of a and b
 public func times(_ a: Vector, _ b: Vector) -> Vector {
     precondition(a.count == b.count, "Vectors must have equal lenghts")
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return vectorVectorOperation(vDSP_vmulD, a, b)
+    #else
     return zip(a, b).map({$0 * $1})
+    #endif
 }
 
 /// Perform vector multiplication.
@@ -96,7 +111,11 @@ public func .* (_ a: Vector, _ b: Vector) -> Vector {
 /// - Returns: result of elementwise division of a by b
 public func rdivide(_ a: Vector, _ b: Vector) -> Vector {
     precondition(a.count == b.count, "Vectors must have equal lenghts")
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return vectorVectorOperation(vDSP_vdivD, b, a)
+    #else
     return zip(a, b).map({$0 / $1})
+    #endif
 }
 
 /// Perform vector right division.
@@ -121,7 +140,11 @@ public func ./ (_ a: Vector, _ b: Vector) -> Vector {
 /// - Returns: result of elementwise division of b by a
 public func ldivide(_ a: Vector, _ b: Vector) -> Vector {
     precondition(a.count == b.count, "Vectors must have equal lenghts")
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return vectorVectorOperation(vDSP_vdivD, a, b)
+    #else
     return zip(a, b).map({$1 / $0})
+    #endif
 }
 
 /// Perform vector left division.
@@ -148,7 +171,13 @@ public func ./. (_ a: Vector, _ b: Vector) -> Vector {
 /// - Returns: dot product of a and b
 public func dot(_ a: Vector, _ b: Vector) -> Double {
     precondition(a.count == b.count, "Vectors must have equal lenghts")
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    var c: Double = 0.0
+    vDSP_dotprD(a, 1, b, 1, &c, vDSP_Length(a.count))
+    return c
+    #else
     return sum(zip(a, b).map({$0 * $1}))
+    #endif
 }
 
 /// Perform vector dot product operation.
@@ -177,7 +206,11 @@ public func * (_ a: Vector, _ b: Vector) -> Double {
 ///     - b: scalar
 /// - Returns: elementwise sum of vector a and scalar b
 public func plus(_ a: Vector, _ b: Double) -> Vector {
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return vectorScalarOperation(vDSP_vsaddD, a, b)
+    #else
     return a.map({$0 + b})
+    #endif
 }
 
 /// Perform vector and scalar addition.
@@ -237,7 +270,11 @@ public func + (_ a: Double, _ b: Vector) -> Vector {
 ///     - b: scalar
 /// - Returns: elementwise difference of vector a and scalar b
 public func minus(_ a: Vector, _ b: Double) -> Vector {
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return vectorScalarOperation(vDSP_vsaddD, a, -b)
+    #else
     return a.map({$0 - b})
+    #endif
 }
 
 /// Perform vector and scalar substraction.
@@ -297,7 +334,11 @@ public func - (_ a: Double, _ b: Vector) -> Vector {
 ///     - b: scalar
 /// - Returns: elementwise product of vector a and scalar b
 public func times(_ a: Vector, _ b: Double) -> Vector {
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return vectorScalarOperation(vDSP_vsmulD, a, b)
+    #else
     return a.map({$0 * b})
+    #endif
 }
 
 /// Perform vector and scalar multiplication.
@@ -357,7 +398,11 @@ public func .* (_ a: Double, _ b: Vector) -> Vector {
 ///     - b: scalar
 /// - Returns: result of elementwise division of vector a by scalar b
 public func rdivide(_ a: Vector, _ b: Double) -> Vector {
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return vectorScalarOperation(vDSP_vsdivD, a, b)
+    #else
     return a.map({$0 / b})
+    #endif
 }
 
 /// Perform vector and scalar right division.
@@ -474,7 +519,11 @@ public func ./. (_ a: Double, _ b: Vector) -> Vector {
 ///     - a: vector
 /// - Returns: vector of absolute values of elements of vector a
 public func abs(_ a: Vector) -> Vector {
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return unaryVectorOperation(vDSP_vabsD, a)
+    #else
     return a.map({$0.magnitude})
+    #endif
 }
 
 /// Negation of vector.
@@ -485,7 +534,11 @@ public func abs(_ a: Vector) -> Vector {
 ///     - a: vector
 /// - Returns: vector of negated values of elements of vector a
 public func uminus(_ a: Vector) -> Vector {
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    return unaryVectorOperation(vDSP_vnegD, a)
+    #else
     return a.map({$0 * -1})
+    #endif
 }
 
 /// Negation of vector.
@@ -506,5 +559,12 @@ public prefix func - (_ a: Vector) -> Vector {
 /// - Returns: vector with values less than certain value set to 0 
 ///            and keeps the value otherwise
 public func thr(_ a: Vector, _ t: Double) -> Vector {
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    var b = zeros(a.count)
+    var t = t
+    vDSP_vthrD(a, 1, &t, &b, 1, vDSP_Length(a.count))
+    return b
+    #else
     return a.map({$0 > t ? $0 : 0})
+    #endif
 }

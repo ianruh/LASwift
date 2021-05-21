@@ -80,9 +80,15 @@ public postfix func ′ (_ a: Matrix) -> Matrix {
 public func mtimes(_ A: Matrix, _ B: Matrix) -> Matrix {
     precondition(A.cols == B.rows, "Matrix dimensions must agree")
 
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    let C: Matrix = zeros(A.rows, B.cols)
+    vDSP_mmulD(A.flat, 1, B.flat, 1, &(C.flat), 1, vDSP_Length(A.rows), vDSP_Length(B.cols), vDSP_Length(A.cols))
+
+    return C
+    #else
+
     // CBLAS enum values
     let cblasNoTranspose = CBLAS_TRANSPOSE.init(rawValue: 111)
-//    let cblasTranspose = CBLAS_TRANSPOSE.init(rawValue: 112)
 
     /* Compute matrix product*/
 
@@ -107,6 +113,7 @@ public func mtimes(_ A: Matrix, _ B: Matrix) -> Matrix {
     cblas_dgemm(order, transposeA, transposeB, M, N, K, alpha, &A_copy.flat, LDA, &B_copy.flat, LDB, beta, &C.flat, LDC)
 
     return C
+    #endif
 }
 
 /// Perform matrix multiplication.
@@ -426,14 +433,28 @@ public func tri(_ A: Matrix, _ t: Triangle) -> Matrix {
     switch t {
     case .Upper:
         for i in (0..<A.rows) {
+            #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+            A.flat.withUnsafeBufferPointer { bufPtr in
+                let p = bufPtr.baseAddress! + (i * _A.cols) + i
+                vDSP_mmovD(p, &_A.flat[(i * _A.cols) + i], vDSP_Length(A.cols - i), vDSP_Length(1), vDSP_Length(A.cols), vDSP_Length(_A.cols))
+            }
+            #else
             if(i == A.cols) {
                 break
             }
             _A[i...i, i..<A.cols] = A[i...i, i..<A.cols]
+            #endif
         }
     case .Lower:
         for i in (0..<A.rows) {
+            #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+            A.flat.withUnsafeBufferPointer { bufPtr in
+                let p = bufPtr.baseAddress! + (i * _A.cols)
+                vDSP_mmovD(p, &_A.flat[(i * _A.cols)], vDSP_Length(i + 1), vDSP_Length(1), vDSP_Length(A.cols), vDSP_Length(_A.cols))
+            }
+            #else
             _A[i...i, 0...min(i, A.cols-1)] = A[i...i, 0...min(i, A.cols-1)]
+            #endif
         }
     }
     return _A

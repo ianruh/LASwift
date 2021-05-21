@@ -8,6 +8,9 @@
 
 import CLAPACK
 import CBLAS
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+import Accelerate
+#endif
 
 /// Matrix triangular part.
 ///
@@ -40,11 +43,15 @@ public func trace(_ A: Matrix) -> Double {
 public func transpose(_ A: Matrix) -> Matrix {
     let C: Matrix = zeros(A.cols, A.rows)
 
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    vDSP_mtransD(A.flat, 1, &(C.flat), 1, vDSP_Length(A.cols), vDSP_Length(A.rows))
+    #else
     for n in 0..<A.flat.count {
         let i: Int = n/A.rows
         let j: Int = n%A.rows
         C.flat[n] = A.flat[A.cols*j + i]
     }
+    #endif
 
     return C
 }
